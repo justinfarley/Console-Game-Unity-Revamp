@@ -6,5 +6,5 @@ It will be a Solo game for now may incorporate [RLS](https://justin-portfolio.fa
 ## Features:
 * Will still be played in a terminal
 * Weapons will be white/colorless and (maybe) pixelish to fit console theme
-* 
+* Map will always be visible with arrows to move around or you can use the arrow keys
 * 
