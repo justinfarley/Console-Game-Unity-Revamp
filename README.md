@@ -9,5 +9,5 @@ It will be a Solo game for now may incorporate [RLS](https://justin-portfolio.fa
 * Map will always be visible with arrows to move around or you can use the arrow keys
 
 ## Ideas:
-* starts as RLS~SERVER://Region/WorldMap/Zone-X/Y-Coordinates/Player/{Action} something like that in the console the path changes as you enter commands as well
+* starts as USER~SERVER://Region/WorldMap/Zone-X/Y-Coordinates/Player/{Action} something like that in the console the path changes as you enter commands as well
 * 
