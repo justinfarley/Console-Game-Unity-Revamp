@@ -1,24 +1,33 @@
 using System;
+using System.Runtime.InteropServices.WindowsRuntime;
 using TMPro;
 using UnityEngine;
 
 public static class Shortcuts
 {
-    public static void DetectSubmitCommand(TMP_InputField field, CommandLine cmdLine, TMP_SelectionCaret caret)
+    public static bool DetectSubmitCommand(TMP_InputField field, CommandLine cmdLine, TMP_SelectionCaret caret)
     {
-        if (!Input.GetKeyDown(KeyCode.Return)) return;
+        if (!Input.GetKeyDown(KeyCode.Return)) return false;
+
+        if (cmdLine.IsConfirmationPrompt)
+        {
+            bool confirmed = cmdLine.RawInput.Equals("CONFIRM");
+            CommandLine.OnConfirmationPromptAnswered?.Invoke(confirmed);
+            Cleanup(field, cmdLine, caret);
+            return true;
+        }
+
         string input = field.text.Replace(ACG.FullPath, "");
         Command command = new(input);
-        Commands.RunCommand(command);
+        _ = Commands.RunCommand(command);
 
         if(!string.IsNullOrEmpty(input)) 
             ConsoleController.CommandList.AddLast(input);
         ConsoleController.CurrentCommand = null;
 
         //Cleanup
-        field.enabled = false;
-        UnityEngine.Object.Destroy(caret.gameObject);
-        UnityEngine.Object.Destroy(cmdLine);
+        Cleanup(field, cmdLine, caret);
+        return true;
     }
     public static void DetectGetPreviousCommand(TMP_InputField field, Action endAction = null)
     {
@@ -39,4 +48,14 @@ public static class Shortcuts
         field.text = $"{ACG.FullPath}{ConsoleController.AutoComplete(Command.CommandNames, input)}";
         endAction?.Invoke();
     }
+
+    #region Private API
+    private static void Cleanup(TMP_InputField field, CommandLine cmdLine, TMP_SelectionCaret caret)
+    {
+        field.enabled = false;
+        UnityEngine.Object.Destroy(caret.gameObject);
+        UnityEngine.Object.Destroy(cmdLine);
+    }
+
+    #endregion
 }

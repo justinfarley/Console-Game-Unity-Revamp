@@ -63,8 +63,14 @@ public static class SaveLoad
         {
             Debug.Log("File doesn't exist");
         }
-
         return null;
+    }
+    //Deletes the file
+    public static void DeleteData()
+    {
+        string fullPath = Application.persistentDataPath + directory + fileName;
+        if (File.Exists(fullPath))
+            File.Delete(fullPath);
     }
 
 }

@@ -5,7 +5,7 @@ using UnityEngine;
 public static class ACG
 {
     public static string BasePath => PlayerStats.UserName == null
-                                     ? "UNKNOWN~SERVER://"
+                                     ? "<color=red>UNKNOWN</color>~SERVER://"
                                      : $"<color=yellow>{PlayerStats.UserName}</color>~SERVER://";
 
     public static string FullPath => BasePath + "> ";
@@ -29,12 +29,12 @@ public static class ACG
 
     public static class Names
     {
-        public static string HelpCommand = "<color=green>Help";
-        public static string MoveCommand = "<color=yellow>Move";
+        public const string SaveCommand = "Save";
+        public const string Delete_SaveCommand = "DELETE_SAVE";
 
         public readonly static string[] ColoredNames = new string[]
         {
-            HelpCommand, MoveCommand,
+            Delete_SaveCommand, SaveCommand
         };
 
         public static string AddColor(string cmd) => ColoredNames.ToList().Find(x => x.Contains(cmd)) ?? cmd;

@@ -1,5 +1,6 @@
 using RedLobsterStudios.Util;
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(UniqueID))]
@@ -24,6 +25,27 @@ public class PlayerStats : MonoSingleton<PlayerStats>, ISaveable
         Health = ((PlayerStatsSaveData)data).Health;
         BaseCritChance = ((PlayerStatsSaveData)data).BaseCritChance;
         UserName = ((PlayerStatsSaveData)data).UserName;
+    }
+
+    public static string PlayerStatsString()
+    {
+        string result = string.Empty;
+
+        result += $"{UserName}'s Stats:\n";
+        result += $"Health: {Health}\n";
+        result += $"Crit Chance: {BaseCritChance}(base)\n"/* + {Weapon.CritChance} = {CritChance}\n"*/;
+        result += $"{Inventory.StringList()}";
+
+
+        return result;
+    }
+
+    public static void ResetPlayerStats()
+    {
+        Inventory = new Inventory();
+        Health = 10; //TODO: generic base value change later
+        BaseCritChance = 0.05f;
+        UserName = null;
     }
 
     //public float CritChance => BaseCritChance + Weapon.CritChance;

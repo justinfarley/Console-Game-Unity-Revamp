@@ -38,19 +38,21 @@ public class ConsoleController : MonoBehaviour
     }
     public static string AutoComplete(List<string> commandNames, string input)
     {
-        input = input.ToLower();
-        string result = commandNames.Find(cName => cName.ToLower().StartsWith(input) ||
-                                                cName.ToLower().Equals(input) ||
-                                                cName.ToLower().Contains(input));
+        input = input.Trim().ToLower();
+        string result = commandNames.FindAll(cName => MatchesCommand(cName, input)).FirstOrDefault();
         return result;
     }
-    public static void SpawnOutputBox(string output, Transform parent)
+    public static bool MatchesCommand(string command, string input) =>
+        command.ToLower().StartsWith(input) ||
+        command.ToLower().Equals(input) ||
+        command.ToLower().Contains(input);
+    public static void SpawnOutputBox(string output, Transform parent, bool isConfirmation = false)
     {
         OutputBox outputBox = ACG.SpawnOutputBox(parent).GetComponent<OutputBox>();
 
         if (string.IsNullOrEmpty(output)) return;
 
-        outputBox.ShowOutput(output);
+        outputBox.ShowOutput(output, isConfirmation);
     }
 
     public static string GetPrevCommand()

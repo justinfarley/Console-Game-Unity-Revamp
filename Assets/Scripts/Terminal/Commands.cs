@@ -1,13 +1,15 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public static class Commands
 {
-    public static void RunCommand(Command command)
+    public static async Task RunCommand(Command command)
     {
-        ConsoleController.OnCommandExecuted?.Invoke(CommandExecutionCallback.New(command,GetCommandOutput(command, command.args)));
+        string output = await GetCommandOutput(command, command.args);
+        ConsoleController.OnCommandExecuted?.Invoke(CommandExecutionCallback.New(command,output));
     }
-    public static string GetCommandOutput(Command command, params string[] args) =>
+    public static async Task<string> GetCommandOutput(Command command, params string[] args) =>
         command.type switch
         {
             Command.CommandType.Move => Move(args),
@@ -15,6 +17,8 @@ public static class Commands
             Command.CommandType.Clear => Clear(args),
             Command.CommandType.Save => Save(args),
             Command.CommandType.Load => Load(args),
+            Command.CommandType.Stats => Stats(args),
+            Command.CommandType.DELETE_SAVE => await DeleteSave(args),
             _ => "<color=red>Command Not Found!",
         };
     // TODO: arg1 should be page (eventually)
@@ -32,7 +36,7 @@ public static class Commands
         string username = null;
         if (args.Length > 1)
         {
-            username = args[1];
+            username = args[1].ToUpper();
             if(username != null)
             {
                 if (username.Length <= 15)
@@ -48,10 +52,44 @@ public static class Commands
             return "<color=red>An Error Occured.";
     }
     //arg1 is username
+    public static string Stats(params string[] args) => PlayerStats.PlayerStatsString();
     public static string Load(params string[] args)
     {
-        SaveLoad.Load();
-        return $"Loaded <color=yellow>{PlayerStats.UserName}</color>'s Profile Successfully.";
+        if (SaveLoad.Load() == null)
+            return "No save data exists. Try saving first!";
+        else
+            return $"Loaded <color=yellow>{PlayerStats.UserName}</color>'s Profile Successfully.";
+    }
+    public static async Task<string> DeleteSave(params string[] args)
+    {
+        OutputBox outputBox = ACG.SpawnOutputBox(ConsoleController.Controller.transform).GetComponent<OutputBox>();
+
+        bool gotConfirmation = false;
+        bool isConfirmed = false;
+
+        void Confirmation(bool val)
+        {
+            gotConfirmation = true;
+            isConfirmed = val;
+        }
+
+        CommandLine.OnConfirmationPromptAnswered += Confirmation;
+
+        outputBox.ShowOutput("Are you sure you want to delete all saved data?\nType CONFIRM to verify.", true);
+
+        while (!gotConfirmation)
+            await Awaitable.EndOfFrameAsync();
+
+        CommandLine.OnConfirmationPromptAnswered -= Confirmation;
+
+        if (isConfirmed)
+        {
+            PlayerStats.ResetPlayerStats();
+            SaveLoad.DeleteData();
+            return "<color=green>Successfully Deleted.";
+        }
+        else
+            return "<color=red>Cancelled. Nothing was done.";
     }
     public class CommandExecutionCallback
     {

@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Schema;
+using System;
 using System.Collections;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -8,15 +9,24 @@ using UnityEngine;
 public class CommandLine : MonoBehaviour
 {
     private TMP_InputField field;
-    private int minCaretPosition = ACG.FullPath.Length;
+    private int minCaretPosition;
     private string previousText;
     private int lastValidCaretPosition;
     private TMP_SelectionCaret caret = null;
     private RectTransform fieldRect;
+    public static Action<bool> OnConfirmationPromptAnswered = null;
+    public bool IsConfirmationPrompt { get; set; } = false;
+    public string Path => IsConfirmationPrompt ? ">" : ACG.FullPath;
+    public string RawInput
+    {
+        get => field.text.Replace(Path, "");
+        set => field.text = Path + value;
+    }
     private void Start()
     {
+        minCaretPosition = Path.Length;
         field = gameObject.GetComponent<TMP_InputField>();
-        field.text = ACG.FullPath;
+        field.text = Path;
         previousText = field.text;
         lastValidCaretPosition = Mathf.Max(minCaretPosition, field.caretPosition);
         field.onValueChanged.AddListener(HandleTextChange);
@@ -44,10 +54,10 @@ public class CommandLine : MonoBehaviour
         if (field.caretPosition < minCaretPosition)
         {
 
-            if (!field.text.StartsWith(ACG.FullPath))
+            if (!field.text.StartsWith(Path))
             {
-                field.text = Regex.Replace(field.text, $"^{Regex.Escape(ACG.FullPath)}+", "");
-                field.text = ACG.FullPath + Regex.Replace(previousText, ".*~SERVER://.*>", "");
+                field.text = Regex.Replace(field.text, $"^{Regex.Escape(Path)}+", "");
+                field.text = Path + Regex.Replace(previousText, ".*~SERVER://.*>", "");
             }
             field.caretPosition = lastValidCaretPosition;
         }
@@ -56,6 +66,9 @@ public class CommandLine : MonoBehaviour
             previousText = newText;
             lastValidCaretPosition = field.caretPosition;
         }
+        //ensure the user isnt trying to use RichText
+        RawInput = RawInput.Replace("<", "\u02C2").Replace(">", "\u02C3");
+
         StartCoroutine(InitCaret());
     }
     private void CheckShortcuts()

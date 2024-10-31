@@ -1,16 +1,21 @@
+using NUnit.Framework;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class Inventory : MonoBehaviour
+public class Inventory
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    public List<Item> Items = new List<Item>() { new Item("TEST"), new Item("TEST2") };
 
-    // Update is called once per frame
-    void Update()
+    public string StringList()
     {
-        
+        string result = string.Empty;
+        int itemsPerLine = 5;
+
+        for (int i = 0; i < Items.Count; i++)
+        {
+            result += Items[i].Name + ( i % itemsPerLine == 0 && i <= (Items.Count - 2) ? ",\n" : ", ");
+        }
+        result = result.Trim();
+        return result;
     }
 }

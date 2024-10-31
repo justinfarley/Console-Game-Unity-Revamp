@@ -14,6 +14,8 @@ public class Command
         Clear,
         Save,
         Load,
+        DELETE_SAVE,
+        Stats,
     }
 
     public CommandType type;
@@ -22,16 +24,16 @@ public class Command
 
     public Command(string input)
     {
-        args = input.Split(" ");
+        args = input.Trim().Split(" ");
         type = ConsoleController.GetCommandType(args[0]);
         name = type.ToString();
     }
     public static string GetListOfCommands()
     {
         string[] names = Enum.GetNames(typeof(CommandType)).Where(x => !x.Contains("NOT_FOUND")).OrderBy(x => x).Select(x => $"- {ACG.Names.AddColor(x)}").ToArray();
-        string result = "<color=#D3D3D3>";
+        string result = "<color=#808080>";
         foreach (var name in names)
-            result += (name + "\n");
+            result += (name + "\n<color=#808080>");
         return result;
     }
 }
