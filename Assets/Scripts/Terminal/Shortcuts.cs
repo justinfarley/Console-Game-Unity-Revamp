@@ -9,13 +9,22 @@ public static class Shortcuts
     {
         if (!Input.GetKeyDown(KeyCode.Return)) return false;
 
-        if (cmdLine.IsConfirmationPrompt)
+        switch (cmdLine.OutputType)
         {
-            bool confirmed = cmdLine.RawInput.Equals("CONFIRM");
-            CommandLine.OnConfirmationPromptAnswered?.Invoke(confirmed);
-            Cleanup(field, cmdLine, caret);
-            return true;
+            case ACG.OutputType.Confirmation:
+                bool confirmed = cmdLine.RawInput.Equals("CONFIRM");
+                CommandLine.OnConfirmationAnswered?.Invoke(confirmed);
+                Cleanup(field, cmdLine, caret);
+                return true;
+            case ACG.OutputType.Prompt:
+                CommandLine.OnPromptAnswered?.Invoke(cmdLine.RawInput);
+                Cleanup(field, cmdLine, caret);
+                return true;
+            case ACG.OutputType.Default:
+            default:
+                break;
         }
+
 
         string input = field.text.Replace(ACG.FullPath, "");
         Command command = new(input);

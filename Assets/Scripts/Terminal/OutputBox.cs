@@ -11,16 +11,17 @@ public class OutputBox : MonoBehaviour
     private static ConsoleController console;
     private TMP_Text tmp;
     private string _output;
-    private bool _isConfirmation = false;
+    private ACG.OutputType outputType = ACG.OutputType.Default;
 
-    public void ShowOutput(string output, bool isConfirmation = false)
+    public void ShowOutput(string output, ACG.OutputType outputType = ACG.OutputType.Default, bool spawnCLineOnComplete = true)
     {
-        _isConfirmation = isConfirmation;
+        this.outputType = outputType;
         _output = output;
         typewriter = GetComponent<TypewriterByCharacter>();
         tmp = GetComponent<TMP_Text>();
         typewriter.onCharacterVisible.AddListener(CharacterShown);
-        typewriter.onTextShowed.AddListener(() => OnTextShown(_isConfirmation));
+        if(spawnCLineOnComplete)
+            typewriter.onTextShowed.AddListener(() => SpawnCommandLine(this.outputType));
         typewriter.ShowText(_output);
     }
 
@@ -33,7 +34,7 @@ public class OutputBox : MonoBehaviour
 
         int charIndex = typewriter.TextAnimator.textFull.IndexOf(ch);
 
-        if (charIndex == tmp.firstOverflowCharacterIndex || ch == '\n')
+        if (ch == '\n')
         {
             fittingText = typewriter.TextAnimator.textFull;
             overflowingText = typewriter.TextAnimator.textFull.Substring(charIndex + 1);
@@ -43,15 +44,15 @@ public class OutputBox : MonoBehaviour
             tmp.text = fittingText;
             console = console != null ? console : transform.parent.GetComponent<ConsoleController>();
 
-            ConsoleController.SpawnOutputBox(overflowingText, console.transform, _isConfirmation);
+            ConsoleController.SpawnOutputBox(overflowingText, console.transform, outputType);
 
             StartCoroutine(DestroyBuffer());
         }
     }
-    private void OnTextShown(bool isConfirmation)
+    private void SpawnCommandLine(ACG.OutputType outputType)
     {
         CommandLine cl = ACG.SpawnCommandLine(transform.parent).GetComponent<CommandLine>();
-        cl.IsConfirmationPrompt = isConfirmation;
+        cl.OutputType = outputType;
     }
 
     private IEnumerator DestroyBuffer()

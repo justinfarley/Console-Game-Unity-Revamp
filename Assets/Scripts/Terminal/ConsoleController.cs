@@ -4,15 +4,24 @@ using System;
 using System.Data;
 using System.Collections.Generic;
 using System.Linq;
+using Febucci.UI.Core;
 
 public class ConsoleController : MonoBehaviour
 {
+    public enum ConsoleState
+    {
+        Default,
+        Battle,
+        ItemPedestal,
+
+    }
+    public static ConsoleState State = ConsoleState.Default;
     public static Action<Commands.CommandExecutionCallback> OnCommandExecuted = null;
     private static GameObject outputBoxPrefab;
     public static LinkedList<string> CommandList = new LinkedList<string>();
     public static LinkedListNode<string> CurrentCommand = null;
     public static ConsoleController Controller { get; set; } = null;
-    protected void Awake()
+    protected async void Awake()
     {
         if (Controller == null)
             Controller = this;
@@ -21,13 +30,27 @@ public class ConsoleController : MonoBehaviour
         outputBoxPrefab = outputBoxPrefab != null 
             ? outputBoxPrefab 
             : ACG.LoadResource<GameObject>(ACG.Paths.PrefabsPath, ACG.Paths.Prefabs.OutputBox);
+
+        ACG.DestroyAllChildren(Controller.transform);
+
+        string input = await ACG.DisplayWithPrompt("Hello Traveler! Enter your name here:");
+
+        await Commands.RunCommand(new Command($"save {input}"), false);
+
+        string worldSize = await ACG.DisplayWithPrompt("How large would you like to make your world, Small(1), Medium(2), Large(3), or XLarge(4)?", true);
+        int size;
+        while (!int.TryParse(worldSize, out size))
+            worldSize = await ACG.DisplayWithPrompt("That wasn't a valid pick... Try again:", true);
+
+        ACG.SpawnCommandLine(Controller.transform);
+        Debug.Log(size);
     }
     private void RunCommand(Commands.CommandExecutionCallback cb)
     {
         if(cb.Command.type == Command.CommandType.Clear)
             return;
-        //instantiate output box
-        SpawnOutputBox(cb.Output, transform);
+        //instantiate output box    
+        SpawnOutputBox(cb.Output, transform, ACG.OutputType.Default,cb.SpawnCommandLineOnFinish);
     }
 
     public static Command.CommandType GetCommandType(string consoleInput)
@@ -39,20 +62,20 @@ public class ConsoleController : MonoBehaviour
     public static string AutoComplete(List<string> commandNames, string input)
     {
         input = input.Trim().ToLower();
-        string result = commandNames.FindAll(cName => MatchesCommand(cName, input)).FirstOrDefault();
-        return result;
+        string result = commandNames.FindAll(cName => Matches(cName, input)).FirstOrDefault();
+        return result ?? input;
     }
-    public static bool MatchesCommand(string command, string input) =>
-        command.ToLower().StartsWith(input) ||
-        command.ToLower().Equals(input) ||
-        command.ToLower().Contains(input);
-    public static void SpawnOutputBox(string output, Transform parent, bool isConfirmation = false)
+    public static bool Matches(string testAgainst, string input) =>
+        testAgainst.ToLower().StartsWith(input) ||
+        testAgainst.ToLower().Equals(input) ||
+        testAgainst.ToLower().Contains(input);
+    public static void SpawnOutputBox(string output, Transform parent, ACG.OutputType outputType = ACG.OutputType.Default, bool spawnCLOnDone = true)
     {
         OutputBox outputBox = ACG.SpawnOutputBox(parent).GetComponent<OutputBox>();
 
         if (string.IsNullOrEmpty(output)) return;
 
-        outputBox.ShowOutput(output, isConfirmation);
+        outputBox.ShowOutput(output, outputType, spawnCLOnDone);
     }
 
     public static string GetPrevCommand()

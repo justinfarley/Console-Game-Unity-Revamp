@@ -13,10 +13,13 @@ public class CommandLine : MonoBehaviour
     private string previousText;
     private int lastValidCaretPosition;
     private TMP_SelectionCaret caret = null;
+    public TMP_SelectionCaret Caret => caret;
+    public TMP_InputField Field { get => field; set => field = value; }
     private RectTransform fieldRect;
-    public static Action<bool> OnConfirmationPromptAnswered = null;
-    public bool IsConfirmationPrompt { get; set; } = false;
-    public string Path => IsConfirmationPrompt ? ">" : ACG.FullPath;
+    public static Action<bool> OnConfirmationAnswered = null;
+    public static Action<string> OnPromptAnswered = null;
+    public ACG.OutputType OutputType { get; set; } = ACG.OutputType.Default;
+    public string Path => OutputType != ACG.OutputType.Default ? "> " : ACG.FullPath;
     public string RawInput
     {
         get => field.text.Replace(Path, "");
@@ -93,6 +96,6 @@ public class CommandLine : MonoBehaviour
     }
     void OnDestroy()
     {
-        field.onValueChanged.RemoveListener(HandleTextChange);
+        field?.onValueChanged.RemoveListener(HandleTextChange);
     }
 }

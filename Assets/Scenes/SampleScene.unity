@@ -663,6 +663,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1217082078}
     m_Modifications:
+    - target: {fileID: 1451492427865419732, guid: 23acc0ed1a8aeaf4b8d5b1eeb26bbbb2, type: 3}
+      propertyPath: m_text
+      value: "{USER_NAME}~SERVER://> \u200B"
+      objectReference: {fileID: 0}
     - target: {fileID: 1555271817863536833, guid: 23acc0ed1a8aeaf4b8d5b1eeb26bbbb2, type: 3}
       propertyPath: m_Name
       value: Command Line

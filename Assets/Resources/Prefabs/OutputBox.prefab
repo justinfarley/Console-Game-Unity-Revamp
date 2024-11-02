@@ -68,7 +68,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '- <color=green>Help'
+  m_text: Welcome to the game <color=yellow>JUSTIN
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1ffb8c3515fb6dc4688eff5a7e48200f, type: 2}
   m_sharedMaterial: {fileID: 7453642021753212536, guid: 1ffb8c3515fb6dc4688eff5a7e48200f, type: 2}
@@ -154,7 +154,7 @@ MonoBehaviour:
   typewriterStartsAutomatically: 0
   animationLoop: 0
   timeScale: 0
-  _text: PAIufhipsudgsdg\nsdjifhgsdf\nsdfgsdf\nsdfgsdf\\nsdfgsdfg
+  _text: Welcome to the game <color=yellow>JUSTIN
   useDynamicScaling: 1
   referenceFontSize: 10
   isResettingTimeOnNewText: 1
@@ -163,7 +163,7 @@ MonoBehaviour:
   databaseAppearances: {fileID: 11400000, guid: 9f0f51b02ed25a943b7cea8c6c06890c, type: 2}
   databaseActions: {fileID: 11400000, guid: cac4f28a09817624c94c29d6ef74a664, type: 2}
   defaultAppearancesTags:
-  - horiexp d=0.1
+  - rot a=1.9 d=0.1
   defaultDisappearancesTags: []
   defaultBehaviorsTags: []
   defaultTagsMode: 0
@@ -200,9 +200,9 @@ MonoBehaviour:
   onMessage:
     m_PersistentCalls:
       m_Calls: []
-  waitForNormalChars: 0.01
-  waitLong: 0.4
-  waitMiddle: 0.2
+  waitForNormalChars: 0.02
+  waitLong: 0.05
+  waitMiddle: 0.02
   avoidMultiplePunctuactionWait: 0
   waitForNewLines: 1
   waitForLastCharacter: 1
