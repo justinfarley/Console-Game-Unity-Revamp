@@ -14,13 +14,17 @@ public class BattleUIDisplay : MonoBehaviour
     [SerializeField] private Image enemySprite;
     [SerializeField] private Image playerSprite;
 
-    public void Display(Enemy enemy)
+    [SerializeField] private Gradient healthGradient;
+    public void Display()
     {
-        playerName.text = $"<color=yellow>{PlayerStats.UserName}</color>";
-        enemyName.text = $"<color=red>{enemy.Name}</color>";
+        playerName.text = $"<color=yellow>{Player.UserName}</color>";
+        enemyName.text = $"{CurrentEnemy.DisplayName}";
 
-        enemyHealthBar.fillAmount = enemy.Health / enemy.BaseHealth;
-        playerHealthBar.fillAmount = PlayerStats.Health / PlayerStats.MaxHealth;
+        enemyHealthBar.fillAmount = (float)CurrentEnemy.Health / CurrentEnemy.MaxHealth;
+        playerHealthBar.fillAmount = (float)Player.Instance.Health / Player.Instance.MaxHealth;
+
+        enemyHealthBar.color = healthGradient.Evaluate((float)CurrentEnemy.Health / CurrentEnemy.MaxHealth);
+        playerHealthBar.color = healthGradient.Evaluate((float)Player.Instance.Health / Player.Instance.MaxHealth);
 
         //TODO: enemySprite.sprite = ...
         //TODO: playerSprite.sprite = ...

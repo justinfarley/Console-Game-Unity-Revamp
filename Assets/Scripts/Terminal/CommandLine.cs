@@ -33,8 +33,8 @@ public class CommandLine : MonoBehaviour
             {
                 ACG.OutputType.Confirmation => ACG.AddToPath(ACG.FakePaths.ConfirmationPath),
                 ACG.OutputType.Prompt => ACG.AddToPath(ACG.FakePaths.PromptPath),
-                ACG.OutputType.Default => ACG.ResetPath(),
-                _ => ACG.ResetPath(),
+                ACG.OutputType.Default => ACG.FullPath,
+                _ => ACG.FullPath,
             };
         }
     }

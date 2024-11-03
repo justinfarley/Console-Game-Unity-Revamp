@@ -5,14 +5,19 @@ using static ACG.Colors;
 
 public class Consumable : Item
 {
+    public string DisplayName => $"<color={ConsumableNameColor}>{Name}</color>";
     public Consumable(string name, Tuple<int, int> worth) : base(name, worth)
     {
-        Name = $"<color={ConsumableNameColor}>{Name}</color>";
     }
-    public virtual string Use()
+    public virtual UseData Use(IDamageable damageable)
     {
         Inventory.RemoveItem(this);
-        return $"Used {Name}!";
+
+        return new UseData();
     }
     public static Consumable Create(string name, Tuple<int, int> worth) => new Consumable(name, worth);
+}
+public class UseData
+{
+
 }

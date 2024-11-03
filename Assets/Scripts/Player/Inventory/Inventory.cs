@@ -1,12 +1,16 @@
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 
 public class Inventory
 {
-    public static List<Item> Items = new List<Item>() { ACG.Weapons.Branch, ACG.Consumables.MediumPotion }; //TODO: REMOVE, JUST FOR NOW
+    public static List<Item> Items = null;
+
+    public Inventory(List<Item> items)
+    {
+        Items = items;
+    }
 
     public string StringList()
     {

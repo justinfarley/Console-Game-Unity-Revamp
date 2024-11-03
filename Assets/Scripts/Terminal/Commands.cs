@@ -21,11 +21,39 @@ public static class Commands
             case Command.CommandType.Load: return Load(args);
             case Command.CommandType.See: return See(args);
             case Command.CommandType.Equip: return Equip(args);
+            case Command.CommandType.Run: return Run(args);
+            case Command.CommandType.Fight: return await Fight(args);
             case Command.CommandType.Use: return await Use(args);
             case Command.CommandType.Battle: return await Battle(args);
             case Command.CommandType.DELETE_SAVE: return await DeleteSave(args);
             default: return "<color=red>Command Not Found!";
         };
+    }
+
+    private static async Task<string> Fight(string[] args)
+    {
+        if (BattleSystem.CurrentEnemy == null) return "Something went wrong.";
+
+        var attackResult = Player.Weapon.DealDamage(BattleSystem.CurrentEnemy);
+
+
+        ACG.SpawnBattleUI(ConsoleController.Controller.transform).Display();
+
+        await Awaitable.WaitForSecondsAsync(0.25f);
+
+        return $"You attacked the {BattleSystem.CurrentEnemy.DisplayName} with your {Player.Weapon.DisplayName}!\n" +
+                                         (attackResult.WasCrit
+                                            ? $"<color=yellow>It's a Critical Hit!</color> You dealt <color=yellow>{attackResult.Damage}</color> Damage!\n"
+                                            : $"You dealt <color=red>{attackResult.Damage}</color> Damage!\n"
+                                         ) 
+                                         + $"{BattleSystem.CurrentEnemy.DisplayName}'s Health: <color=green>{attackResult.OtherHealthBefore}</color> -> <color=red>{attackResult.OtherHealthAfter}</color>";
+    
+    }
+
+    private static string Run(string[] args)
+    {
+        //TODO: implemetn
+        return "Ran away ong";
     }
 
     private static async Task<string> Battle(string[] args)
@@ -67,7 +95,7 @@ public static class Commands
             if(username != null)
             {
                 if (username.Length <= 15)
-                    PlayerStats.UpdateUserName(username);
+                    Player.UpdateUserName(username);
                 else
                     return "Please use a shorter name!";
             }
@@ -84,11 +112,11 @@ public static class Commands
         if (args.Length <= 1)
             return "Incorrect Usage. For help, use \"help see\"";
         else if (args[1].ToLower().Equals("weapon"))
-            return PlayerStats.WeaponStatsString();
+            return Player.WeaponStatsString();
         else if (args[1].ToLower().Equals("player"))
-            return PlayerStats.PlayerStatsString();
+            return Player.PlayerStatsString();
         else if (Regex.IsMatch(args[1].ToLower(), "inve?n?t?o?r?y?"))
-            return $"Current Items: \n{PlayerStats.Inventory.StringList()}";
+            return $"Current Items: \n{Player.Inventory.StringList()}";
 
         return "Incorrect Usage. For help, use \"help see\"";
     }
@@ -97,7 +125,7 @@ public static class Commands
         if (SaveLoad.Load() == null)
             return "No save data exists. Try saving first!";
         else
-            return $"Loaded <color=yellow>{PlayerStats.UserName}</color>'s Profile Successfully.";
+            return $"Loaded <color=yellow>{Player.UserName}</color>'s Profile Successfully.";
     }
     public static string Equip(params string[] args)
     {
@@ -105,8 +133,8 @@ public static class Commands
 
         if (Inventory.Has<Weapon>(args[1]))
         {
-            PlayerStats.EquipWeapon(Inventory.Get<Weapon>(args[1]));
-            return $"<color=green>Successfully Equipped your <color={WeaponNameColor}>{PlayerStats.Weapon.Name}";
+            Player.EquipWeapon(Inventory.Get<Weapon>(args[1]));
+            return $"<color=green>Successfully Equipped your <color={WeaponNameColor}>{Player.Weapon.Name}";
         }
         else
         {
@@ -119,8 +147,9 @@ public static class Commands
 
         if (Inventory.Has<Consumable>(args[1]))
         {
-            string result = await PlayerStats.UseConsumable(Inventory.Get<Consumable>(args[1]));
-            return result;
+            var consumable = Inventory.Get<Consumable>(args[1]);
+            await Player.UseConsumable(consumable, Player.Instance);
+            return $"Successfully Used {consumable.DisplayName}";
         }
         return $"You don't have a(n) {args[1]} in your inventory!";
     }
@@ -130,7 +159,7 @@ public static class Commands
 
         if (confirmed)
         {
-            PlayerStats.ResetPlayerStats();
+            Player.ResetPlayerStats();
             SaveLoad.DeleteData();
             return "<color=green>Successfully Deleted.";
         }

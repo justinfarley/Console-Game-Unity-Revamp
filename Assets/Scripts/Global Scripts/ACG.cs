@@ -2,6 +2,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -16,9 +17,9 @@ public static class ACG
         Prompt
     }
 
-    public static string BasePath => PlayerStats.UserName == null
+    public static string BasePath => Player.UserName == null
                                      ? "<color=red>UNKNOWN</color>~SERVER://"
-                                     : $"<color=yellow>{PlayerStats.UserName}</color>~SERVER://";
+                                     : $"<color=yellow>{Player.UserName}</color>~SERVER://";
 
     public static string FullPath => BasePath + ExtraPath + "> ";
 
@@ -47,14 +48,14 @@ public static class ACG
     public static async Task Display(string fullDisplayString, bool spawnCommandLineOnCompletion = false)
     {
         HardCleanup();
-        await Awaitable.EndOfFrameAsync();
+        await Awaitable.NextFrameAsync();
         await SpawnOutputBox(ConsoleController.Controller.transform).GetComponent<OutputBox>().ShowOutput(fullDisplayString, OutputType.Default, spawnCommandLineOnCompletion);
     }
     public static async Task<bool> DisplayWithConfirmation(string fullDisplayString)
     {
         HardCleanup();
-        await Awaitable.EndOfFrameAsync();
-        await SpawnOutputBox(ConsoleController.Controller.transform)
+        await Awaitable.NextFrameAsync();
+        _ = SpawnOutputBox(ConsoleController.Controller.transform)
             .GetComponent<OutputBox>()
             .ShowOutput(fullDisplayString, OutputType.Confirmation);
 
@@ -70,7 +71,7 @@ public static class ACG
         CommandLine.OnConfirmationAnswered += Confirmation;
 
         while (!finished)
-            await Awaitable.EndOfFrameAsync();
+            await Awaitable.NextFrameAsync();
 
         CommandLine.OnConfirmationAnswered -= Confirmation;
 
@@ -79,8 +80,7 @@ public static class ACG
     public static async Task<string> DisplayWithPrompt(string fullDisplayString, bool spawnCLOnComplete = true)
     {
         HardCleanup();
-        await Awaitable.EndOfFrameAsync();
-        await SpawnOutputBox(ConsoleController.Controller.transform).GetComponent<OutputBox>().ShowOutput(fullDisplayString, OutputType.Prompt, spawnCLOnComplete);
+        await Awaitable.NextFrameAsync();
 
         bool finished = false;
         string result = string.Empty;
@@ -93,8 +93,17 @@ public static class ACG
 
         CommandLine.OnPromptAnswered += Action;
 
+        try
+        {
+            await SpawnOutputBox(ConsoleController.Controller.transform).GetComponent<OutputBox>().ShowOutput(fullDisplayString, OutputType.Prompt, spawnCLOnComplete);
+        }
+        catch(Exception ex)
+        {
+            Debug.LogError(ex.Message);
+        }
+        
         while(!finished)
-            await Awaitable.EndOfFrameAsync();
+            await Awaitable.NextFrameAsync();
 
         CommandLine.OnPromptAnswered -= Action;
 
@@ -127,10 +136,10 @@ public static class ACG
         return Resources.Load<T>(path);
     }
 
-    public static bool PlayerGoesFirst(Enemy enemy) => PlayerStats.Speed >= enemy.Speed;
+    public static bool PlayerGoesFirst(Enemy enemy) => Player.Speed >= enemy.Speed;
     public static GameObject SpawnCommandLine(Transform parent) => SpawnPrefab(Paths.Prefabs.CommandLine, parent);
     public static GameObject SpawnOutputBox(Transform parent) => SpawnPrefab(Paths.Prefabs.OutputBox, parent);
-    public static GameObject SpawnBattleUI(Transform parent) => SpawnPrefab(Paths.Prefabs.BattleUI, parent);
+    public static BattleUIDisplay SpawnBattleUI(Transform parent) => SpawnPrefab(Paths.Prefabs.BattleUI, parent).GetComponent<BattleUIDisplay>();
     public static GameObject SpawnPrefab(string prefab, Transform parent) => GameObject.Instantiate(LoadResource<GameObject>(Paths.PrefabsPath, prefab), parent);
 
     public static void DestroyAllChildren(Transform obj)
@@ -148,7 +157,7 @@ public static class ACG
     public static class Names
     {
         public const string SaveCommand = "Save";
-        public const string Delete_SaveCommand = "<color=red>DELETE_SAVE";
+        public const string Delete_SaveCommand = "<color=red>DELETE_SAVE</color>";
 
         public readonly static string[] ColoredNames = new string[]
         {
@@ -221,7 +230,7 @@ public static class ACG
                                                      .Concat(Level_5_Weapons)                                    
                                                      .ToArray();
     }
-    public static class Consumables
+    public static class Items
     {
         //Potions
         public static readonly Potion SmallPotion = Potion.Create("Small Potion", new(1, 3), PotionType.Small);
@@ -235,16 +244,17 @@ public static class ACG
     }
     public static class Enemies
     {
-        public static readonly Enemy Goblin = Enemy.Create("Goblin", 5, "A small, but aggressive, Goblin.", 2, 1,Weapons.Stick, Weapons.Branch);
-        public static readonly Enemy Orc = Enemy.Create("Orc", 10, "A wild Orc furiously swinging his sword around.", 5, 3, Weapons.WoodenSword);
-        public static readonly Enemy ViciousPlant = Enemy.Create("ViciousPlant", 25, "This overgrown green fungus has big fists that it uses to catch prey.", 12, 2, Weapons.BrassKnuckles);
-        public static readonly Enemy Clown = Enemy.Create("Clown", 50, "It's a Clown. It appears to have anger issues.", 25, 3, Weapons.WoodenBat);
-        public static readonly Enemy Giant = Enemy.Create("Giant", 100, "This enormous human easily intimidates you with its strength.", 50, 1, Weapons.Club);
-        public static readonly Enemy Vampire = Enemy.Create("Vampire", 150, "This enormous human easily intimidates you with its strength.", 50, 1, Weapons.MetalBat);
+        public static readonly Enemy Goblin = Enemy.Create("Goblin", 5, "A small, but aggressive, Goblin.", 2, 1,null,Weapons.Stick, Weapons.Branch);
+        public static readonly Enemy Orc = Enemy.Create("Orc", 10, "A wild Orc furiously swinging his sword around.", 5, 3, null,Weapons.WoodenSword);
+        public static readonly Enemy ViciousPlant = Enemy.Create("ViciousPlant", 25, "This overgrown green fungus has big fists that it uses to catch prey.", 12, 2, Items.SmallPotion, Weapons.BrassKnuckles);
+        public static readonly Enemy Clown = Enemy.Create("Clown", 50, "It's a Clown. It appears to have anger issues.", 25, 3, Items.SmallPotion, Weapons.WoodenBat);
+        public static readonly Enemy Giant = Enemy.Create("Giant", 100, "This enormous human easily intimidates you with its strength.", 50, 1, Items.MediumPotion,Weapons.Club);
+        public static readonly Enemy Vampire = Enemy.Create("Vampire", 150, "This enormous human easily intimidates you with its strength.", 50, 1, Items.LargePotion,Weapons.MetalBat);
     }
     public static class Colors 
     {
         public const string WeaponNameColor = "#1ec197";
+        public const string EnemyNameColor = "red";
         public const string ConsumableNameColor = "#1e81c1";
     }
     public static class ValidCommands

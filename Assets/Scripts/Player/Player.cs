@@ -1,16 +1,17 @@
 using RedLobsterStudios.Util;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using static ACG.Colors;
 
 [RequireComponent(typeof(UniqueID))]
-public class PlayerStats : MonoSingleton<PlayerStats>, ISaveable, IDamageable
+public class Player : MonoSingleton<Player>, ISaveable, IDamageable
 {
     public static Inventory Inventory { get; private set; }
     public static Weapon Weapon { get; private set; } = ACG.Weapons.Stick;
-    public static int Health { get; private set; } = 10;
-    public static int MaxHealth { get; private set; } = 10;
+    public int Health { get; set; } = 10;
+    public int MaxHealth { get; set; } = 10;
     public static float BaseCritChance { get; private set; } = 5f;
     public static float CritChance => Mathf.Clamp(BaseCritChance + Weapon.CritChance, 0f, 100f);
     public static string UserName { get; private set; }
@@ -21,7 +22,7 @@ public class PlayerStats : MonoSingleton<PlayerStats>, ISaveable, IDamageable
     protected override void Awake()
     {
         base.Awake();
-        Inventory = new Inventory();
+        Inventory = new Inventory(new List<Item>() { ACG.Weapons.Branch, ACG.Items.MediumPotion }); //TODO: REMOVE, JUST FOR NOW);
     }
 
     public static void UpdateUserName(string userName) => UserName = userName;
@@ -47,11 +48,11 @@ public class PlayerStats : MonoSingleton<PlayerStats>, ISaveable, IDamageable
         string result = string.Empty;
 
         result += $"<color=yellow>{UserName}</color>'s Stats:\n";
-        result += $"Health: {Health}\n";
+        result += $"Health: {Instance.Health}\n";
         if (Weapon == null) 
             return result;
-        result += $"Current Weapon: {Weapon.Name}\n";
-        result += $"Crit Chance: {BaseCritChance}% (base) + {Weapon.CritChance}% ({Weapon.Name}) = <color={CritChanceColor()}>{CritChance}%\n";
+        result += $"Current Weapon: {Weapon.DisplayName}\n";
+        result += $"Crit Chance: {BaseCritChance}% (base) + {Weapon.CritChance}% ({Weapon.DisplayName}) = <color={CritChanceColor()}>{CritChance}%\n";
         return result;
     }
     public static string WeaponStatsString()
@@ -59,10 +60,10 @@ public class PlayerStats : MonoSingleton<PlayerStats>, ISaveable, IDamageable
         if (Weapon == null) return "You don't have a weapon equipped!";
 
         string result = string.Empty;
-        result += $"{Weapon.Name}'s Stats:\n";
+        result += $"{Weapon.DisplayName}'s Stats:\n";
         result += $"Damage: {Weapon.DamageRange.Item1} - {Weapon.DamageRange.Item2}\n";
         result += $"Worth: {Weapon.Worth.Item1} - {Weapon.Worth.Item2}\n";
-        result += $"Crit Chance: {Weapon.CritChance}%({Weapon.Name})\n";
+        result += $"Crit Chance: {Weapon.CritChance}%({Weapon.DisplayName})\n";
         result += $"Crit Multiplier: <color={(Weapon.CritMultiplier < 2f ? "yellow" : "green")}>{Weapon.CritMultiplier}x\n";
         result += $"Durability: {Weapon.Durability}/{Weapon.BaseDurability}";
         return result;
@@ -70,9 +71,9 @@ public class PlayerStats : MonoSingleton<PlayerStats>, ISaveable, IDamageable
 
     public static void ResetPlayerStats()
     {
-        Inventory = new Inventory();
-        Health = 10; //TODO: generic base value change later
-        MaxHealth = 10; //TODO: generic base value change later
+        Inventory = new Inventory(new List<Item>() { ACG.Weapons.Branch, ACG.Items.MediumPotion }); //TODO: REMOVE, JUST FOR NOW););
+        Instance.Health = 10; //TODO: generic base value change later
+        Instance.MaxHealth = 10; //TODO: generic base value change later
         BaseCritChance = 5;
         UserName = null;
     }
@@ -80,26 +81,25 @@ public class PlayerStats : MonoSingleton<PlayerStats>, ISaveable, IDamageable
     {
         Weapon = weapon;
     }
-    public static async Task<string> UseConsumable(Consumable consumable)
+    public static async Task UseConsumable(Consumable consumable, IDamageable damageable)
     {
-        await Awaitable.EndOfFrameAsync();
-        return consumable.Use();
+        await Awaitable.NextFrameAsync();
+        consumable.Use(damageable);
     }
 
-    public void TakeDamage(int damage)
+    public TookDamageData TakeDamage(int damage)
     {
+        int beforeHealth = Health;
+        
         Health -= damage;
+        
+        int afterHealth = Health;
 
-        if(Health <= 0)
+        if (Health <= 0)
             print("ded");
-    }
-    public static void AddHealth(int amount)
-    {
-        Health += amount;
-        if (Health > MaxHealth)
-            Health = MaxHealth;
-    }
 
+        return new TookDamageData(beforeHealth, afterHealth);
+    }
     private static string CritChanceColor() =>
         CritChance switch
         {

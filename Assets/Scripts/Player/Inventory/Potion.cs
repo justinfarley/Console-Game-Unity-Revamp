@@ -31,12 +31,26 @@ public class Potion : Consumable
         HealingPower = ACG.NumBetween(HealingPowerDict[type]);
     }
 
-    public override string Use()
+    public override UseData Use(IDamageable damageable)
     {
-        int prevHealth = PlayerStats.Health;
-        PlayerStats.AddHealth(HealingPower);
-        return base.Use() + $" You gained {HealingPower} health!\n<color=red>{prevHealth}</color> -> <color=green>{(PlayerStats.Health == PlayerStats.MaxHealth ? $"{PlayerStats.Health}(MAX)" : PlayerStats.Health)}";
+        base.Use(damageable);
+        int prevHealth = damageable.Health;
+        IDamageable.AddHealth(damageable, HealingPower);
+        int afterHealth = damageable.Health;
+        //$" You gained {HealingPower} health!\n<color=red>{prevHealth}</color> -> <color=green>{(PlayerStats.Health == PlayerStats.MaxHealth ? $"{PlayerStats.Health}(MAX)" : PlayerStats.Health)}
+        return new PotionUseData(prevHealth, afterHealth);
     }
 
     public static Potion Create(string name, Tuple<int, int> worth, PotionType type) => new Potion(name, worth, type);
+}
+public class PotionUseData : UseData
+{
+    public int HealthBeforeUse;
+    public int HealthAfterUse;
+
+    public PotionUseData(int healthBeforeUse, int healthAfterUse)
+    {
+        HealthBeforeUse = healthBeforeUse;
+        HealthAfterUse = healthAfterUse;
+    }
 }
