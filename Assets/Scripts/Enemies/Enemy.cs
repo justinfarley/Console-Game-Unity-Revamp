@@ -4,6 +4,7 @@ using UnityEngine;
 public class Enemy : IDamageable
 {
     public int Health { get; set; }
+    public int BaseHealth { get; set; }
     //TODO: Maybe defense?
     public Weapon Weapon { get; set; }
     public string Name { get; set; }
@@ -14,6 +15,7 @@ public class Enemy : IDamageable
     public Enemy(string name, int health, string description, int experienceValue, float speed, params Weapon[] weapons)
     {
         Health = health;
+        BaseHealth = health;
         Weapon = weapons[Random.Range(0, weapons.Length)];
         Name = name;
         Description = description;

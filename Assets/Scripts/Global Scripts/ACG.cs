@@ -20,19 +20,41 @@ public static class ACG
                                      ? "<color=red>UNKNOWN</color>~SERVER://"
                                      : $"<color=yellow>{PlayerStats.UserName}</color>~SERVER://";
 
-    public static string FullPath => BasePath + "> ";
+    public static string FullPath => BasePath + ExtraPath + "> ";
 
+    public static string ExtraPath { get; set; }
+
+    public static readonly string[] BattlePrompts = new string[]
+    {
+        "What would you like to do?", "What will you do?", "Do something that will help you win:",
+    };
+
+    public static string AddToPath(string path)
+    {
+        ExtraPath += path;
+        return FullPath;
+    }
+    public static string ResetPath()
+    {
+        ExtraPath = string.Empty;
+        return FullPath;
+    }
+    public static string RemoveFromPath(string pathToRemove)
+    {
+        ExtraPath = ExtraPath.Replace(pathToRemove, string.Empty);
+        return FullPath;
+    }
     public static async Task Display(string fullDisplayString, bool spawnCommandLineOnCompletion = false)
     {
         HardCleanup();
         await Awaitable.EndOfFrameAsync();
-        SpawnOutputBox(ConsoleController.Controller.transform).GetComponent<OutputBox>().ShowOutput(fullDisplayString, OutputType.Default, spawnCommandLineOnCompletion);
+        await SpawnOutputBox(ConsoleController.Controller.transform).GetComponent<OutputBox>().ShowOutput(fullDisplayString, OutputType.Default, spawnCommandLineOnCompletion);
     }
     public static async Task<bool> DisplayWithConfirmation(string fullDisplayString)
     {
         HardCleanup();
         await Awaitable.EndOfFrameAsync();
-        SpawnOutputBox(ConsoleController.Controller.transform)
+        await SpawnOutputBox(ConsoleController.Controller.transform)
             .GetComponent<OutputBox>()
             .ShowOutput(fullDisplayString, OutputType.Confirmation);
 
@@ -58,7 +80,7 @@ public static class ACG
     {
         HardCleanup();
         await Awaitable.EndOfFrameAsync();
-        SpawnOutputBox(ConsoleController.Controller.transform).GetComponent<OutputBox>().ShowOutput(fullDisplayString, OutputType.Prompt, spawnCLOnComplete);
+        await SpawnOutputBox(ConsoleController.Controller.transform).GetComponent<OutputBox>().ShowOutput(fullDisplayString, OutputType.Prompt, spawnCLOnComplete);
 
         bool finished = false;
         string result = string.Empty;
@@ -97,6 +119,8 @@ public static class ACG
     }
 
     public static bool CoinFlip(int numChoices = 2) => UnityEngine.Random.Range(0, numChoices) == 0;
+    public static int NumBetween(Tuple<int, int> tuple) => UnityEngine.Random.Range(tuple.Item1, tuple.Item2 + 1);
+    public static T PickRandom<T>(T[] items) => items[UnityEngine.Random.Range(0, items.Length)]; 
     public static T LoadResource<T>(params string[] pathSegments) where T : UnityEngine.Object
     {
         string path = System.IO.Path.Combine(pathSegments);
@@ -106,6 +130,7 @@ public static class ACG
     public static bool PlayerGoesFirst(Enemy enemy) => PlayerStats.Speed >= enemy.Speed;
     public static GameObject SpawnCommandLine(Transform parent) => SpawnPrefab(Paths.Prefabs.CommandLine, parent);
     public static GameObject SpawnOutputBox(Transform parent) => SpawnPrefab(Paths.Prefabs.OutputBox, parent);
+    public static GameObject SpawnBattleUI(Transform parent) => SpawnPrefab(Paths.Prefabs.BattleUI, parent);
     public static GameObject SpawnPrefab(string prefab, Transform parent) => GameObject.Instantiate(LoadResource<GameObject>(Paths.PrefabsPath, prefab), parent);
 
     public static void DestroyAllChildren(Transform obj)
@@ -139,7 +164,13 @@ public static class ACG
         {
             public const string OutputBox = "OutputBox";
             public const string CommandLine = "CommandLine";
+            public const string BattleUI = "BattleUI";
         }
+    }
+    public static class FakePaths
+    {
+        public const string ConfirmationPath = ".../";
+        public const string PromptPath = ".../";
     }
 
     public static class Weapons 
@@ -190,6 +221,18 @@ public static class ACG
                                                      .Concat(Level_5_Weapons)                                    
                                                      .ToArray();
     }
+    public static class Consumables
+    {
+        //Potions
+        public static readonly Potion SmallPotion = Potion.Create("Small Potion", new(1, 3), PotionType.Small);
+        public static readonly Potion MediumPotion = Potion.Create("Medium Potion", new(3, 7), PotionType.Medium);
+        public static readonly Potion LargePotion = Potion.Create("Large Potion", new(8, 14), PotionType.Large);
+        public static readonly Potion ExtraLargePotion = Potion.Create("Extra Large Potion", new(12, 18), PotionType.ExtraLarge);
+        public static readonly Potion MegaPotion = Potion.Create("Mega Potion", new(15, 25), PotionType.Mega);
+        public static readonly Potion UltraPotion = Potion.Create("Ultra Potion", new(30, 45), PotionType.Ultra);
+        public static readonly Potion GargantuanPotion = Potion.Create("Gargantuan Potion", new(50, 100), PotionType.Gargantuan);
+
+    }
     public static class Enemies
     {
         public static readonly Enemy Goblin = Enemy.Create("Goblin", 5, "A small, but aggressive, Goblin.", 2, 1,Weapons.Stick, Weapons.Branch);
@@ -202,12 +245,13 @@ public static class ACG
     public static class Colors 
     {
         public const string WeaponNameColor = "#1ec197";
+        public const string ConsumableNameColor = "#1e81c1";
     }
     public static class ValidCommands
     {
         private static readonly Command.CommandType[] AlwaysIncluded = new Command.CommandType[] { Command.CommandType.Help, Command.CommandType.Clear };
-        public static readonly Command.CommandType[] DefaultCommands = AlwaysIncluded.Concat(new Command.CommandType[] { Command.CommandType.Save, Command.CommandType.Load, Command.CommandType.DELETE_SAVE, Command.CommandType.See, Command.CommandType.Equip }).ToArray();
-        public static readonly Command.CommandType[] BattleCommands = AlwaysIncluded.Concat(new Command.CommandType[] { /*TODO:*/ }).ToArray();
+        public static readonly Command.CommandType[] DefaultCommands = AlwaysIncluded.Concat(new Command.CommandType[] { Command.CommandType.Save, Command.CommandType.Load, Command.CommandType.DELETE_SAVE, Command.CommandType.See, Command.CommandType.Equip, Command.CommandType.Battle, Command.CommandType.Use }).ToArray();
+        public static readonly Command.CommandType[] BattleCommands = AlwaysIncluded.Concat(new Command.CommandType[] { Command.CommandType.Fight, Command.CommandType.Run, Command.CommandType.Use }).ToArray();
 
         private static Dictionary<ConsoleController.ConsoleState, Command.CommandType[]> ValidCommandsDict = new Dictionary<ConsoleController.ConsoleState, Command.CommandType[]>()
         {

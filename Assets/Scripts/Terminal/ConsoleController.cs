@@ -5,6 +5,7 @@ using System.Data;
 using System.Collections.Generic;
 using System.Linq;
 using Febucci.UI.Core;
+using System.Threading.Tasks;
 
 public class ConsoleController : MonoBehaviour
 {
@@ -26,7 +27,6 @@ public class ConsoleController : MonoBehaviour
         if (Controller == null)
             Controller = this;
 
-        OnCommandExecuted += RunCommand;
         outputBoxPrefab = outputBoxPrefab != null 
             ? outputBoxPrefab 
             : ACG.LoadResource<GameObject>(ACG.Paths.PrefabsPath, ACG.Paths.Prefabs.OutputBox);
@@ -35,7 +35,7 @@ public class ConsoleController : MonoBehaviour
 
         string input = await ACG.DisplayWithPrompt("Hello Traveler! Enter your name here:");
 
-        await Commands.RunCommand(new Command($"save {input}"), false);
+        await RunCommand(new Command($"save {input}"),false);
 
         string worldSize = await ACG.DisplayWithPrompt("How large would you like to make your world, Small(1), Medium(2), Large(3), or XLarge(4)?", true);
         int size;
@@ -45,14 +45,28 @@ public class ConsoleController : MonoBehaviour
         ACG.SpawnCommandLine(Controller.transform);
         Debug.Log(size);
     }
-    private void RunCommand(Commands.CommandExecutionCallback cb)
+
+    private void Start()
+    {
+        CommandLine.OnPromptAnswered += output => ACG.RemoveFromPath(ACG.FakePaths.PromptPath);    
+        CommandLine.OnConfirmationAnswered += output => ACG.RemoveFromPath(ACG.FakePaths.ConfirmationPath);    
+    }
+
+    public static async Task RunCommand(Commands.CommandExecutionCallback cb)
     {
         if(cb.Command.type == Command.CommandType.Clear)
             return;
         //instantiate output box    
-        SpawnOutputBox(cb.Output, transform, ACG.OutputType.Default,cb.SpawnCommandLineOnFinish);
+        await SpawnOutputBox(cb.Output, Controller.transform, ACG.OutputType.Default,cb.SpawnCommandLineOnFinish);
     }
-
+    public static async Task RunCommand(Command command, bool shouldSpawnCLOnComplete = true, Command.CommandType[] validTypes = null)
+    {
+        string output = await Commands.GetCommandOutput(command, validTypes, command.args);
+        if (command.type == Command.CommandType.Clear)
+            return;
+        //instantiate output box    
+        await SpawnOutputBox(output, Controller.transform, ACG.OutputType.Default, shouldSpawnCLOnComplete);
+    }
     public static Command.CommandType GetCommandType(string consoleInput)
     {
         string result = AutoComplete(Command.CommandNames, consoleInput);
@@ -69,14 +83,15 @@ public class ConsoleController : MonoBehaviour
         testAgainst.ToLower().StartsWith(input) ||
         testAgainst.ToLower().Equals(input) ||
         testAgainst.ToLower().Contains(input);
-    public static void SpawnOutputBox(string output, Transform parent, ACG.OutputType outputType = ACG.OutputType.Default, bool spawnCLOnDone = true)
+    public static async Task SpawnOutputBox(string output, Transform parent, ACG.OutputType outputType = ACG.OutputType.Default, bool spawnCLOnDone = true)
     {
         OutputBox outputBox = ACG.SpawnOutputBox(parent).GetComponent<OutputBox>();
 
         if (string.IsNullOrEmpty(output)) return;
 
-        outputBox.ShowOutput(output, outputType, spawnCLOnDone);
+        await outputBox.ShowOutput(output, outputType, spawnCLOnDone);
     }
+    public static void ChangeConsoleState(ConsoleState newState) => State = newState;
 
     public static string GetPrevCommand()
     {

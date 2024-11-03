@@ -1,20 +1,28 @@
 using RedLobsterStudios.Util;
 using System;
+using System.Threading.Tasks;
 using UnityEngine;
 using static ACG.Colors;
 
 [RequireComponent(typeof(UniqueID))]
 public class PlayerStats : MonoSingleton<PlayerStats>, ISaveable, IDamageable
 {
-    public static Inventory Inventory { get; private set; } = new Inventory();
-    public static Weapon Weapon { get; private set; }
-    public static int Health { get; private set; }
+    public static Inventory Inventory { get; private set; }
+    public static Weapon Weapon { get; private set; } = ACG.Weapons.Stick;
+    public static int Health { get; private set; } = 10;
+    public static int MaxHealth { get; private set; } = 10;
     public static float BaseCritChance { get; private set; } = 5f;
     public static float CritChance => Mathf.Clamp(BaseCritChance + Weapon.CritChance, 0f, 100f);
     public static string UserName { get; private set; }
     public const float BaseSpeed = 1f;
     public static float Speed => BaseSpeed + Weapon.SpeedFactor;
     //MAYBE: defense
+
+    protected override void Awake()
+    {
+        base.Awake();
+        Inventory = new Inventory();
+    }
 
     public static void UpdateUserName(string userName) => UserName = userName;
 
@@ -27,6 +35,7 @@ public class PlayerStats : MonoSingleton<PlayerStats>, ISaveable, IDamageable
     {
         Inventory = ((PlayerStatsSaveData)data).Inventory;
         Health = ((PlayerStatsSaveData)data).Health;
+        MaxHealth = ((PlayerStatsSaveData)data).MaxHealth;
         BaseCritChance = ((PlayerStatsSaveData)data).BaseCritChance;
         UserName = ((PlayerStatsSaveData)data).UserName;
     }
@@ -63,12 +72,18 @@ public class PlayerStats : MonoSingleton<PlayerStats>, ISaveable, IDamageable
     {
         Inventory = new Inventory();
         Health = 10; //TODO: generic base value change later
+        MaxHealth = 10; //TODO: generic base value change later
         BaseCritChance = 5;
         UserName = null;
     }
     public static void EquipWeapon(Weapon weapon)
     {
         Weapon = weapon;
+    }
+    public static async Task<string> UseConsumable(Consumable consumable)
+    {
+        await Awaitable.EndOfFrameAsync();
+        return consumable.Use();
     }
 
     public void TakeDamage(int damage)
@@ -77,6 +92,12 @@ public class PlayerStats : MonoSingleton<PlayerStats>, ISaveable, IDamageable
 
         if(Health <= 0)
             print("ded");
+    }
+    public static void AddHealth(int amount)
+    {
+        Health += amount;
+        if (Health > MaxHealth)
+            Health = MaxHealth;
     }
 
     private static string CritChanceColor() =>
@@ -95,6 +116,7 @@ public class PlayerStats : MonoSingleton<PlayerStats>, ISaveable, IDamageable
         public Inventory Inventory;
         public Weapon Weapon;
         public int Health;
+        public int MaxHealth;
         public float BaseCritChance;
         public string UserName;
 
@@ -103,6 +125,7 @@ public class PlayerStats : MonoSingleton<PlayerStats>, ISaveable, IDamageable
             Inventory = inventory;
             Weapon = weapon;
             Health = health;
+            MaxHealth = health;
             BaseCritChance = baseCritChance;
             UserName = userName;
         }

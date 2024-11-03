@@ -28,7 +28,7 @@ public static class Shortcuts
 
         string input = field.text.Replace(ACG.FullPath, "");
         Command command = new(input);
-        _ = Commands.RunCommand(command);
+        _ = ConsoleController.RunCommand(command);
 
         if(!string.IsNullOrEmpty(input)) 
             ConsoleController.CommandList.AddLast(input);

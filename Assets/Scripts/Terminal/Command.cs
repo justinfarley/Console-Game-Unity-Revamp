@@ -8,6 +8,7 @@ public class Command
     public static List<string> CommandNames => Enum.GetNames(typeof(CommandType)).Select(x => x.ToLower()).ToList();
     public enum CommandType
     {
+        //Default
         NOT_FOUND,
         Move,
         Help,
@@ -17,6 +18,12 @@ public class Command
         DELETE_SAVE,
         See,
         Equip,
+        Battle,
+
+        //Battle
+        Fight,
+        Run,
+        Use,
     }
 
     public CommandType type;
@@ -47,6 +54,8 @@ public class Command
                 "Usage: \n\"clear\": Clears the console.",
             CommandType.Load =>
                 "Usage: \n\"load\": Loads the saved profile if one exists.",
+            CommandType.Use =>
+                "Usage: \n\"use <consumable_name>\": Uses the specified consumable if there is one in your inventory.",
             CommandType.Equip =>
                 "Usage: \n\"equip <weapon_name>\": Equips the given weapon from your inventory.",
             _ => $"Something went wrong. The Case was probably not added for command type {type}",

@@ -2,6 +2,7 @@ using Febucci.UI;
 using System;
 using System.Collections;
 using System.Linq;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ public class OutputBox : MonoBehaviour
     private string _output;
     private ACG.OutputType outputType = ACG.OutputType.Default;
 
-    public void ShowOutput(string output, ACG.OutputType outputType = ACG.OutputType.Default, bool spawnCLineOnComplete = true)
+    public async Task ShowOutput(string output, ACG.OutputType outputType = ACG.OutputType.Default, bool spawnCLineOnComplete = true)
     {
         this.outputType = outputType;
         _output = output;
@@ -23,6 +24,17 @@ public class OutputBox : MonoBehaviour
         if(spawnCLineOnComplete)
             typewriter.onTextShowed.AddListener(() => SpawnCommandLine(this.outputType));
         typewriter.ShowText(_output);
+
+        bool isFinished = false;
+        void Done() => isFinished = true;
+
+        typewriter.onTextShowed.AddListener(Done);
+
+        while (!isFinished)
+            await Awaitable.EndOfFrameAsync();
+
+        typewriter.onTextShowed.RemoveListener(Done);
+
     }
 
     private void CharacterShown(char ch)
@@ -44,7 +56,7 @@ public class OutputBox : MonoBehaviour
             tmp.text = fittingText;
             console = console != null ? console : transform.parent.GetComponent<ConsoleController>();
 
-            ConsoleController.SpawnOutputBox(overflowingText, console.transform, outputType);
+            _ = ConsoleController.SpawnOutputBox(overflowingText, console.transform, outputType);
 
             StartCoroutine(DestroyBuffer());
         }

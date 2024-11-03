@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class Inventory
 {
-    public static List<Item> Items = new List<Item>() { ACG.Weapons.Branch, new Item("TEST2", new(1, 1)) }; //TODO: REMOVE, JUST FOR NOW
+    public static List<Item> Items = new List<Item>() { ACG.Weapons.Branch, ACG.Consumables.MediumPotion }; //TODO: REMOVE, JUST FOR NOW
 
     public string StringList()
     {
@@ -21,4 +21,5 @@ public class Inventory
     public static bool Has(string itemName) => Items.Any(x => ConsoleController.Matches(x.Name.ToLower(), itemName.ToLower()));
     public static T Get<T>(string itemName) where T : class => Items.Where(x => x is T).ToList().Find(x => ConsoleController.Matches(x.Name.ToLower(), itemName.ToLower())) as T;
     public static void AddItem(Item item) => Items = Items.Concat(new List<Item>() { item }).ToList();
+    public static void RemoveItem(Item item) => Items.Remove(item);
 }

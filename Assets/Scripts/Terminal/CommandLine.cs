@@ -18,8 +18,27 @@ public class CommandLine : MonoBehaviour
     private RectTransform fieldRect;
     public static Action<bool> OnConfirmationAnswered = null;
     public static Action<string> OnPromptAnswered = null;
-    public ACG.OutputType OutputType { get; set; } = ACG.OutputType.Default;
-    public string Path => OutputType != ACG.OutputType.Default ? "> " : ACG.FullPath;
+    private ACG.OutputType _outputType;
+    public ACG.OutputType OutputType
+    {
+        get
+        {
+            return _outputType;
+        }
+        set
+        {
+            _outputType = value;
+
+            Path = value switch
+            {
+                ACG.OutputType.Confirmation => ACG.AddToPath(ACG.FakePaths.ConfirmationPath),
+                ACG.OutputType.Prompt => ACG.AddToPath(ACG.FakePaths.PromptPath),
+                ACG.OutputType.Default => ACG.ResetPath(),
+                _ => ACG.ResetPath(),
+            };
+        }
+    }
+    public string Path { get; set; } = ACG.FullPath;
     public string RawInput
     {
         get => field.text.Replace(Path, "");

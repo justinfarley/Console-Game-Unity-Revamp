@@ -7,11 +7,7 @@ using static ACG.Colors;
 
 public static class Commands
 {
-    public static async Task RunCommand(Command command, bool shouldSpawnCLOnComplete = true, Command.CommandType[] validTypes = null)
-    {
-        string output = await GetCommandOutput(command, validTypes,command.args);
-        ConsoleController.OnCommandExecuted?.Invoke(CommandExecutionCallback.New(command,output, shouldSpawnCLOnComplete));
-    }
+
     public static async Task<string> GetCommandOutput(Command command, Command.CommandType[] validTypes = null, params string[] args)
     {
         if(validTypes != null && !validTypes.Contains(command.type)) return "<color=red>Command Not Found!";
@@ -25,9 +21,17 @@ public static class Commands
             case Command.CommandType.Load: return Load(args);
             case Command.CommandType.See: return See(args);
             case Command.CommandType.Equip: return Equip(args);
+            case Command.CommandType.Use: return await Use(args);
+            case Command.CommandType.Battle: return await Battle(args);
             case Command.CommandType.DELETE_SAVE: return await DeleteSave(args);
             default: return "<color=red>Command Not Found!";
         };
+    }
+
+    private static async Task<string> Battle(string[] args)
+    {
+        await BattleSystem.StartBattle(ACG.Enemies.Orc); //TODO: change im testing with an Orc
+        return "Battle Over!";
     }
 
     // TODO: arg1 should be page (eventually)
@@ -108,6 +112,17 @@ public static class Commands
         {
             return $"You don't have a(n) \"{args[1]}\" weapon in your inventory!";
         }
+    }
+    private static async Task<string> Use(string[] args)
+    {
+        if (args.Length <= 1) return "Invalid Usage. For help, use \"help use\"";
+
+        if (Inventory.Has<Consumable>(args[1]))
+        {
+            string result = await PlayerStats.UseConsumable(Inventory.Get<Consumable>(args[1]));
+            return result;
+        }
+        return $"You don't have a(n) {args[1]} in your inventory!";
     }
     public static async Task<string> DeleteSave(params string[] args)
     {
