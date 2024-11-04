@@ -41,13 +41,15 @@ public static class Commands
 
         await Awaitable.WaitForSecondsAsync(0.25f);
 
-        return $"You attacked the {BattleSystem.CurrentEnemy.DisplayName} with your {Player.Weapon.DisplayName}!\n" +
+        await ACG.Display($"You attacked the {BattleSystem.CurrentEnemy.DisplayName} with your {Player.Weapon.DisplayName}!\n" +
                                          (attackResult.WasCrit
                                             ? $"<color=yellow>It's a Critical Hit!</color> You dealt <color=yellow>{attackResult.Damage}</color> Damage!\n"
                                             : $"You dealt <color=red>{attackResult.Damage}</color> Damage!\n"
-                                         ) 
-                                         + $"{BattleSystem.CurrentEnemy.DisplayName}'s Health: <color=green>{attackResult.OtherHealthBefore}</color> -> <color=red>{attackResult.OtherHealthAfter}</color>";
-    
+                                         )
+                                         + $"{BattleSystem.CurrentEnemy.DisplayName}'s Health: <color=green>{attackResult.OtherHealthBefore}</color> -> <color=red>{attackResult.OtherHealthAfter}</color>", false);
+
+        //return nothing since we are in battle mode
+        return string.Empty;
     }
 
     private static string Run(string[] args)

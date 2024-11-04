@@ -83,7 +83,7 @@ public static class ACG
         await Awaitable.NextFrameAsync();
 
         bool finished = false;
-        string result = string.Empty;
+        string result = "REPLACE ME";
 
         void Action(string res)
         { 
@@ -93,14 +93,7 @@ public static class ACG
 
         CommandLine.OnPromptAnswered += Action;
 
-        try
-        {
-            await SpawnOutputBox(ConsoleController.Controller.transform).GetComponent<OutputBox>().ShowOutput(fullDisplayString, OutputType.Prompt, spawnCLOnComplete);
-        }
-        catch(Exception ex)
-        {
-            Debug.LogError(ex.Message);
-        }
+        await SpawnOutputBox(ConsoleController.Controller.transform).GetComponent<OutputBox>().ShowOutput(fullDisplayString, OutputType.Prompt, spawnCLOnComplete);
         
         while(!finished)
             await Awaitable.NextFrameAsync();

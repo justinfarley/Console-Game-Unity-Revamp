@@ -41,10 +41,10 @@ public static class BattleSystem
 
             Command cmd = new Command(output);
 
-            await ConsoleController.RunCommand(cmd, true);
+            await ConsoleController.RunCommand(cmd, false);
 
             await ACG.Display($"{CurrentEnemy.DisplayName} is thinking...");
-            await Awaitable.WaitForSecondsAsync(0.5f);
+            await Awaitable.WaitForSecondsAsync(1f);
             await ACG.Display($"{CurrentEnemy.DisplayName} is thinking...");
             await Awaitable.WaitForSecondsAsync(1f);
 
