@@ -8,9 +8,9 @@ using static ACG.Colors;
 public static class Commands
 {
 
-    public static async Task<string> GetCommandOutput(Command command, Command.CommandType[] validTypes = null, params string[] args)
+    public static async Task<string> GetCommandOutput(Command command, params string[] args)
     {
-        if(validTypes != null && !validTypes.Contains(command.type)) return "<color=red>Command Not Found!";
+        if(!ACG.ValidCommands.GetValidCommands(ConsoleController.State).Contains(command.type)) return "<color=red>Command Not Found!";
 
         switch (command.type)
         {

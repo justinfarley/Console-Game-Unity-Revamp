@@ -132,7 +132,11 @@ public static class ACG
     public static bool PlayerGoesFirst(Enemy enemy) => Player.Speed >= enemy.Speed;
     public static GameObject SpawnCommandLine(Transform parent) => SpawnPrefab(Paths.Prefabs.CommandLine, parent);
     public static GameObject SpawnOutputBox(Transform parent) => SpawnPrefab(Paths.Prefabs.OutputBox, parent);
-    public static BattleUIDisplay SpawnBattleUI(Transform parent) => SpawnPrefab(Paths.Prefabs.BattleUI, parent).GetComponent<BattleUIDisplay>();
+    public static BattleUIDisplay SpawnBattleUI(Transform parent)
+    {
+        DestroyAllChildren<BattleUIDisplay>(ConsoleController.Controller.transform);
+        return SpawnPrefab(Paths.Prefabs.BattleUI, parent).GetComponent<BattleUIDisplay>();
+    }
     public static GameObject SpawnPrefab(string prefab, Transform parent) => GameObject.Instantiate(LoadResource<GameObject>(Paths.PrefabsPath, prefab), parent);
 
     public static void DestroyAllChildren(Transform obj)
@@ -143,7 +147,7 @@ public static class ACG
     public static void DestroyAllChildren<T>(Transform obj) where T : Component
     {
         for (int i = 0; i < obj.childCount; i++)
-            if(obj.GetChild(i).GetComponent<T>() != null)
+            if(obj.GetChild(i).GetComponentInChildren<T>() != null)
                 UnityEngine.Object.Destroy(obj.GetChild(i).gameObject);
     }
 

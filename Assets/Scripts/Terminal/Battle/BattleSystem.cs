@@ -43,6 +43,12 @@ public static class BattleSystem
 
             await ConsoleController.RunCommand(cmd, false);
 
+            if (CurrentEnemy.Health <= 0)
+            {
+                // other death stuff
+                return;
+            }
+
             await ACG.Display($"{CurrentEnemy.DisplayName} is thinking...");
             await Awaitable.WaitForSecondsAsync(1f);
             await ACG.Display($"{CurrentEnemy.DisplayName} is thinking...");
@@ -60,12 +66,19 @@ public static class BattleSystem
 
                     await Awaitable.WaitForSecondsAsync(0.25f);
 
-                    await ACG.Display($"The {CurrentEnemy.DisplayName} attacked <color=yellow>YOU</color>!\n" +
-                                                     (attackResult.WasCrit
+                    await ACG.Display($"The {CurrentEnemy.DisplayName} attacked <color=yellow>YOU</color> with it's {CurrentEnemy.Weapon.DisplayName}!\n");
+
+                    await Awaitable.WaitForSecondsAsync(0.5f);
+
+                    await ACG.Display((attackResult.WasCrit
                                                         ? $"<color=yellow>It's a Critical Hit!</color> You were hit for <color=yellow>{attackResult.Damage}</color> Damage!\n"
                                                         : $"You were hit for <color=red>{attackResult.Damage}</color> Damage!\n"
-                                                     )
-                                                     + $"<color=yellow>{Player.UserName}</color>'s Health: <color=green>{attackResult.OtherHealthBefore}</color> -> <color=red>{attackResult.OtherHealthAfter}</color>");
+                                                     ));
+                    await Awaitable.WaitForSecondsAsync(0.5f);
+
+                    await ACG.Display($"<color=yellow>{Player.UserName}</color>'s Health: <color=green>{attackResult.OtherHealthBefore}</color> -> <color=red>{attackResult.OtherHealthAfter}</color>");
+                    await Awaitable.WaitForSecondsAsync(0.5f);
+
                     break;
                 case Enemy.AttackType.HeldItem:
                     if(CurrentEnemy.HeldItem is Potion)

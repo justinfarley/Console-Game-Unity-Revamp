@@ -59,9 +59,9 @@ public class ConsoleController : MonoBehaviour
         //instantiate output box    
         await SpawnOutputBox(cb.Output, Controller.transform, ACG.OutputType.Default,cb.SpawnCommandLineOnFinish);
     }
-    public static async Task RunCommand(Command command, bool shouldSpawnCLOnComplete = true, Command.CommandType[] validTypes = null)
+    public static async Task RunCommand(Command command, bool shouldSpawnCLOnComplete = true)
     {
-        string output = await Commands.GetCommandOutput(command, validTypes, command.args);
+        string output = await Commands.GetCommandOutput(command, command.args);
         if (command.type == Command.CommandType.Clear || string.IsNullOrEmpty(output))
             return;
         //instantiate output box    

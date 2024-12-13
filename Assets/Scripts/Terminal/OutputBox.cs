@@ -65,6 +65,7 @@ public class OutputBox : MonoBehaviour
     {
         if (ch != '\n') return;
 
+        if(_output.IndexOf(ch) + 1 < _output.Length)
         rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, rectTransform.sizeDelta.y + yIncrease);
     }
     private void SpawnCommandLine(ACG.OutputType outputType)
